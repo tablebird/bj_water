@@ -14,7 +14,7 @@ class BJWater:
     def __init__(self, session, user_code) -> None:
         self._session = session
         self.user_code = user_code
-        self.bill_cycle = set()
+        self.bill_cycle = {}
         self.info = {"cycle": {}, "user_code": "", "meter_value": []}
 
     async def get_bill_cycle_range(self):
@@ -40,7 +40,7 @@ class BJWater:
                 bill_list = sorted(bill_list, reverse=True)[0:6]  # 倒序排列后取最近6个账单周期
                 for bill in bill_list:
                     cycle_date = (datetime.strptime(bill, "%Y年%m月").date().strftime("%Y-%m"))
-                    self.bill_cycle.add(cycle_date)
+                    self.bill_cycle[cycle_date] = bill
                     self.info["cycle"].update(
                         {
                             cycle_date: {
@@ -112,7 +112,7 @@ class BJWater:
         :return:
         """
         monthly_api = SERVICE_HOST + "/api/member/bizMyWater/getPcMonthlyBill"
-        params = {"userCode": self.user_code, "billDate": bill_cycle}
+        params = {"userCode": self.user_code, "billDate": self.bill_cycle[bill_cycle]}
         response = await self._session.get(url=monthly_api, params=params, timeout=10)
         if response.status == 200:
             json_body = json.loads(await response.read())
