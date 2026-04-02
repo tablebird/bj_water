@@ -105,7 +105,7 @@ class BJWater:
             LOGGER.error("get_payment_bill res state code: %s" % (response.status))
             raise InvalidData(f"get_payment_bill response status_code = {response.status}")
 
-    async def get_monthly_bill(self, bill_cycle):
+    async def get_monthly_bill(self, bill_cycle, index):
         """
         获取单个月份的账单详情
         :param bill_cycle: 账单周期 如 2023年6月
@@ -124,7 +124,7 @@ class BJWater:
 
             if self.info["cycle"][bill_cycle]["fee"]["pay"] == 0:
                 amount_detail = {
-                    "index": bill_cycle["index"],
+                    "index": index,
                     "fee": {
                         "pay": 0,
                         "date": bill_cycle,
@@ -178,6 +178,8 @@ class BJWater:
     async def fetch_data(self):
         await self.get_bill_cycle_range()
         await self.get_payment_bill()
+        index = 0
         for bill_date in self.bill_cycle:
-            await self.get_monthly_bill(bill_date)
+            await self.get_monthly_bill(bill_date, index)
+            index += 1
         return self.info
